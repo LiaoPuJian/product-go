@@ -1,6 +1,8 @@
 package main
 
-import "github.com/kataras/iris/v12"
+import (
+	"github.com/kataras/iris/v12"
+)
 
 func main() {
 	//1.创建iris实例
@@ -13,7 +15,6 @@ func main() {
 	//注册
 	app.RegisterView(tmp)
 	//4.设置模板目录
-
 	//出现问题跳转到指定页面
 	app.OnAnyErrorCode(func(ctx iris.Context) {
 		ctx.ViewData("message", ctx.Values().GetStringDefault("message", "访问的页面出错！"))
