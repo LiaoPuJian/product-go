@@ -7,29 +7,27 @@ import (
 	"time"
 )
 
-//根据结构体中sql标签映射数据到结构体中并且转换类型
-func DataToStructByTagSql(data map[string]string, obj interface{}) {
-	objValue := reflect.ValueOf(obj).Elem()
-	for i := 0; i < objValue.NumField(); i++ {
-		//获取sql对应的值
-		value := data[objValue.Type().Field(i).Tag.Get("sql")]
-		//获取对应字段的名称
-		name := objValue.Type().Field(i).Name
-		//获取对应字段类型
-		structFieldType := objValue.Field(i).Type()
-		//获取变量类型，也可以直接写"string类型"
+func DataToStruct(data map[string]string, obj interface{}) {
+	//通过反射拿到obj的Value,通过Elem判断是否为指针类型，如果不是，则panic
+	objVal := reflect.ValueOf(obj).Elem()
+	objType := objVal.Type()
+	var key string
+	//循环这个objVal的参数
+	for i := 0; i < objVal.NumField(); i++ {
+		//获取到第一个值的键
+		key = objType.Field(i).Tag.Get("sql")
+		value := data[key]
+		//获取这个值的反射对象
 		val := reflect.ValueOf(value)
-		var err error
-		if structFieldType != val.Type() {
-			//类型转换
-			val, err = TypeConversion(value, structFieldType.Name()) //类型转换
-			if err != nil {
-
-			}
+		fieldType := objVal.Field(i).Type()
+		//判断当前这个键的类型，如果是string，则直接取，如果是其他的，则需要转换一层
+		if fieldType != val.Type() {
+			val, _ = TypeConversion(value, fieldType.Name())
 		}
-		//设置类型值
-		objValue.FieldByName(name).Set(val)
+		//将这个键值放入到obj的结构体中
+		objVal.Field(i).Set(val)
 	}
+
 }
 
 //类型转换

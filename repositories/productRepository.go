@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+	"fmt"
 	"product-go/common"
 	"product-go/models"
 	"strconv"
@@ -45,7 +46,7 @@ func (p *ProductManager) Insert(product *models.Product) (id int64, err error) {
 	if err = p.Conn(); err == nil {
 		return
 	}
-	sqlStr := "INSERT INTO product (product_name, product_num, product_image, product_url) VALUES(?, ?, ?, ?)"
+	sqlStr := fmt.Sprintf("INSERT INTO %s (product_name, product_num, product_image, product_url) VALUES (?, ?, ?, ?)", p.table)
 	stmt, err := p.mysqlConn.Prepare(sqlStr)
 	if err != nil {
 		return
@@ -62,7 +63,7 @@ func (p *ProductManager) Delete(id int64) bool {
 	if err := p.Conn(); err != nil {
 		return false
 	}
-	sqlStr := "DELETE FROM product WHERE id = ?"
+	sqlStr := fmt.Sprintf("DELETE FROM %s WHERE id = ?", p.table)
 	stmt, err := p.mysqlConn.Prepare(sqlStr)
 	if err != nil {
 		return false
@@ -79,7 +80,7 @@ func (p *ProductManager) Update(product *models.Product) error {
 	if err := p.Conn(); err != nil {
 		return err
 	}
-	sqlStr := "UPDATE product SET product_name =?, product_num =?, product_image =?, product_url =? WHERE id = ?"
+	sqlStr := fmt.Sprintf("UPDATE %s SET product_name =?, product_num =?, product_image =?, product_url =? WHERE id = ?", p.table)
 	stmt, err := p.mysqlConn.Prepare(sqlStr)
 	if err != nil {
 		return err
@@ -96,7 +97,8 @@ func (p *ProductManager) SelectByKey(id int64) (*models.Product, error) {
 	if err := p.Conn(); err != nil {
 		return &models.Product{}, err
 	}
-	sqlStr := "SELECT * FROM " + p.table + "WHERE ID = " + strconv.FormatInt(id, 10)
+	sqlStr := fmt.Sprintf("SELECT * FROM %s WHERE ID = ", p.table, strconv.FormatInt(id, 10))
+
 	row, err := p.mysqlConn.Query(sqlStr)
 	if err != nil {
 		return &models.Product{}, err
@@ -106,7 +108,7 @@ func (p *ProductManager) SelectByKey(id int64) (*models.Product, error) {
 		return &models.Product{}, nil
 	}
 	productResult := &models.Product{}
-	common.DataToStructByTagSql(result, productResult)
+	common.DataToStruct(result, productResult)
 	return productResult, nil
 }
 
