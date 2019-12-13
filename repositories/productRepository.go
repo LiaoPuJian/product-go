@@ -97,7 +97,7 @@ func (p *ProductManager) SelectByKey(id int64) (*models.Product, error) {
 	if err := p.Conn(); err != nil {
 		return &models.Product{}, err
 	}
-	sqlStr := fmt.Sprintf("SELECT * FROM %s WHERE ID = ", p.table, strconv.FormatInt(id, 10))
+	sqlStr := fmt.Sprintf("SELECT * FROM %s WHERE ID = %s", p.table, strconv.FormatInt(id, 10))
 
 	row, err := p.mysqlConn.Query(sqlStr)
 	if err != nil {
