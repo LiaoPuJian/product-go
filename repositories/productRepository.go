@@ -26,6 +26,10 @@ type ProductManager struct {
 	mysqlConn *sql.DB
 }
 
+func NewProductManager(table string, db *sql.DB) IProduct {
+	return &ProductManager{table: table, mysqlConn: db}
+}
+
 //连接mysql
 func (p *ProductManager) Conn() error {
 	if p.mysqlConn == nil {
@@ -43,7 +47,7 @@ func (p *ProductManager) Conn() error {
 
 func (p *ProductManager) Insert(product *models.Product) (id int64, err error) {
 	//判断mysql连接是否正常
-	if err = p.Conn(); err == nil {
+	if err = p.Conn(); err != nil {
 		return
 	}
 	sqlStr := fmt.Sprintf("INSERT INTO %s (product_name, product_num, product_image, product_url) VALUES (?, ?, ?, ?)", p.table)
@@ -100,6 +104,8 @@ func (p *ProductManager) SelectByKey(id int64) (*models.Product, error) {
 	sqlStr := fmt.Sprintf("SELECT * FROM %s WHERE ID = %s", p.table, strconv.FormatInt(id, 10))
 
 	row, err := p.mysqlConn.Query(sqlStr)
+	defer row.Close()
+
 	if err != nil {
 		return &models.Product{}, err
 	}
@@ -112,10 +118,24 @@ func (p *ProductManager) SelectByKey(id int64) (*models.Product, error) {
 	return productResult, nil
 }
 
-func (p *ProductManager) SelectAll() ([]*models.Product, error) {
-	panic("implement me")
-}
-
-func NewProductManager(table string, db *sql.DB) IProduct {
-	return &ProductManager{table: table, mysqlConn: db}
+func (p *ProductManager) SelectAll() (result []*models.Product, err error) {
+	if err = p.Conn(); err != nil {
+		return
+	}
+	sqlStr := fmt.Sprintf("SELECT * FROM %s", p.table)
+	rows, err := p.mysqlConn.Query(sqlStr)
+	defer rows.Close()
+	if err != nil {
+		return
+	}
+	res := common.GetResultRows(rows)
+	if len(res) == 0 {
+		return
+	}
+	for _, v := range res {
+		product := &models.Product{}
+		common.DataToStruct(v, product)
+		result = append(result, product)
+	}
+	return
 }

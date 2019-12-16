@@ -8,7 +8,7 @@ import (
 
 //创建mysql 连接
 func NewMysqlConn() (*sql.DB, error) {
-	return sql.Open("mysql", "root:imooc@tcp(127.0.0.1:3306)/imooc?charset=utf8")
+	return sql.Open("mysql", "root:123456@tcp(127.0.0.1:3306)/product?charset=utf8")
 }
 
 //获取返回值，获取一条
