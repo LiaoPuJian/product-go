@@ -32,27 +32,27 @@ func NewOrderManager(table string, db *sql.DB) IOrder {
 }
 
 //连接mysql
-func (p *OrderManager) Conn() error {
-	if p.mysqlConn == nil {
+func (o *OrderManager) Conn() error {
+	if o.mysqlConn == nil {
 		mysql, err := common.NewMysqlConn()
 		if err != nil {
 			return err
 		}
-		p.mysqlConn = mysql
+		o.mysqlConn = mysql
 	}
-	if p.table == "" {
-		p.table = "order"
+	if o.table == "" {
+		o.table = "order"
 	}
 	return nil
 }
 
-func (p *OrderManager) Insert(order *models.Order) (id int64, err error) {
+func (o *OrderManager) Insert(order *models.Order) (id int64, err error) {
 	//判断mysql连接是否正常
-	if err = p.Conn(); err != nil {
+	if err = o.Conn(); err != nil {
 		return
 	}
-	sqlStr := fmt.Sprintf("INSERT INTO %s (user_id, product_id, order_status) VALUES (?, ?, ?)", p.table)
-	stmt, err := p.mysqlConn.Prepare(sqlStr)
+	sqlStr := fmt.Sprintf("INSERT INTO %s (user_id, product_id, order_status) VALUES (?, ?, ?)", o.table)
+	stmt, err := o.mysqlConn.Prepare(sqlStr)
 	if err != nil {
 		return
 	}
@@ -63,13 +63,13 @@ func (p *OrderManager) Insert(order *models.Order) (id int64, err error) {
 	return result.LastInsertId()
 }
 
-func (p *OrderManager) Delete(id int64) bool {
+func (o *OrderManager) Delete(id int64) bool {
 	//判断连接是否正常
-	if err := p.Conn(); err != nil {
+	if err := o.Conn(); err != nil {
 		return false
 	}
-	sqlStr := fmt.Sprintf("DELETE FROM %s WHERE id = ?", p.table)
-	stmt, err := p.mysqlConn.Prepare(sqlStr)
+	sqlStr := fmt.Sprintf("DELETE FROM %s WHERE id = ?", o.table)
+	stmt, err := o.mysqlConn.Prepare(sqlStr)
 	if err != nil {
 		return false
 	}
@@ -80,51 +80,50 @@ func (p *OrderManager) Delete(id int64) bool {
 	return true
 }
 
-func (p *OrderManager) Update(order *models.Order) error {
+func (o *OrderManager) Update(order *models.Order) error {
 	//判断连接是否正常
-	if err := p.Conn(); err != nil {
+	if err := o.Conn(); err != nil {
 		return err
 	}
-	sqlStr := fmt.Sprintf("UPDATE %s SET product_name =?, product_num =?, product_image =?, product_url =? WHERE id = ?", p.table)
-	stmt, err := p.mysqlConn.Prepare(sqlStr)
+	sqlStr := fmt.Sprintf("UPDATE %s SET user_id =?, product_id =?, order_status =? WHERE id = ?", o.table)
+	stmt, err := o.mysqlConn.Prepare(sqlStr)
 	if err != nil {
 		return err
 	}
-	_, err = stmt.Exec(product.ProductName, product.ProductNum, product.ProductImage, product.ProductUrl, product.ID)
+	_, err = stmt.Exec(order.UserId, order.ProductId, order.OrderStatus, order.ID)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (p *OrderManager) SelectByKey(id int64) (*models.Order, error) {
+func (o *OrderManager) SelectByKey(id int64) (*models.Order, error) {
 	//判断连接是否正常
-	if err := p.Conn(); err != nil {
-		return &models.Product{}, err
+	if err := o.Conn(); err != nil {
+		return &models.Order{}, err
 	}
-	sqlStr := fmt.Sprintf("SELECT * FROM %s WHERE ID = %s", p.table, strconv.FormatInt(id, 10))
-
-	row, err := p.mysqlConn.Query(sqlStr)
+	sqlStr := fmt.Sprintf("SELECT * FROM %s WHERE id = %s", o.table, strconv.FormatInt(id, 10))
+	row, err := o.mysqlConn.Query(sqlStr)
 	defer row.Close()
 
 	if err != nil {
-		return &models.Product{}, err
+		return &models.Order{}, err
 	}
 	result := common.GetResultRow(row)
 	if len(result) == 0 {
-		return &models.Product{}, nil
+		return &models.Order{}, nil
 	}
-	productResult := &models.Product{}
-	common.DataToStruct(result, productResult)
-	return productResult, nil
+	orderResult := &models.Order{}
+	common.DataToStruct(result, orderResult)
+	return orderResult, nil
 }
 
-func (p *OrderManager) SelectAll() (result []*models.Order, err error) {
-	if err = p.Conn(); err != nil {
+func (o *OrderManager) SelectAll() (result []*models.Order, err error) {
+	if err = o.Conn(); err != nil {
 		return
 	}
-	sqlStr := fmt.Sprintf("SELECT * FROM %s", p.table)
-	rows, err := p.mysqlConn.Query(sqlStr)
+	sqlStr := fmt.Sprintf("SELECT * FROM %s", o.table)
+	rows, err := o.mysqlConn.Query(sqlStr)
 	defer rows.Close()
 	if err != nil {
 		return
@@ -134,13 +133,23 @@ func (p *OrderManager) SelectAll() (result []*models.Order, err error) {
 		return
 	}
 	for _, v := range res {
-		product := &models.Product{}
+		product := &models.Order{}
 		common.DataToStruct(v, product)
 		result = append(result, product)
 	}
 	return
 }
 
-func (p *OrderManager) SelectAllWithInfo() (map[int]map[string]string, error) {
-
+//将对应产品的信息也取出
+func (o *OrderManager) SelectAllWithInfo() (result map[int]map[string]string, err error) {
+	if err = o.Conn(); err != nil {
+		return
+	}
+	sqlStr := fmt.Sprintf("SELECT * FROM %s as a LEFT JOIN %s as b ON a.product_id = b.id", o.table, "product")
+	rows, err := o.mysqlConn.Query(sqlStr)
+	defer rows.Close()
+	if err != nil {
+		return
+	}
+	return common.GetResultRows(rows), nil
 }
