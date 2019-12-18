@@ -143,13 +143,13 @@ func (o *OrderManager) SelectAll() (result []*models.Order, err error) {
 //将对应产品的信息也取出
 func (o *OrderManager) SelectAllWithInfo() (result map[int]map[string]string, err error) {
 	if err = o.Conn(); err != nil {
-		return
+		return nil, err
 	}
 	sqlStr := fmt.Sprintf("SELECT * FROM %s as a LEFT JOIN %s as b ON a.product_id = b.id", o.table, "product")
 	rows, err := o.mysqlConn.Query(sqlStr)
 	defer rows.Close()
 	if err != nil {
-		return
+		return nil, err
 	}
 	return common.GetResultRows(rows), nil
 }
