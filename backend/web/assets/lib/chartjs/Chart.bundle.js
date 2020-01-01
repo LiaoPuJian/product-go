@@ -8015,7 +8015,7 @@ module.exports = function(Chart) {
 
 	/**
 	 * @class Chart.Controller
-	 * The main controller of a chart.
+	 * The main controllers of a chart.
 	 */
 	Chart.Controller = function(instance) {
 
@@ -8350,7 +8350,7 @@ module.exports = function(Chart) {
 
 			Chart.plugins.notify('beforeDatasetsDraw', [me, easingDecimal]);
 
-			// Draw each dataset via its respective controller (reversed to support proper line stacking)
+			// Draw each dataset via its respective controllers (reversed to support proper line stacking)
 			helpers.each(me.data.datasets, function(dataset, datasetIndex) {
 				if (me.isDatasetVisible(datasetIndex)) {
 					me.getDatasetMeta(datasetIndex).controller.draw(ease);
@@ -10362,7 +10362,7 @@ module.exports = function(Chart) {
 			var ci = this.chart;
 			var meta = ci.getDatasetMeta(index);
 
-			// See controller.isDatasetVisible comment
+			// See controllers.isDatasetVisible comment
 			meta.hidden = meta.hidden === null? !ci.data.datasets[index].hidden : null;
 
 			// We hid a dataset ... rerender the chart

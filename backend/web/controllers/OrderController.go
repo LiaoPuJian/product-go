@@ -22,7 +22,7 @@ func (o *OrderController) Get() mvc.View {
 	return mvc.View{
 		Name: "order/view.html",
 		Data: iris.Map{
-			"products": orders,
+			"orders": orders,
 		},
 	}
 }

@@ -51,7 +51,7 @@ func (o *OrderManager) Insert(order *models.Order) (id int64, err error) {
 	if err = o.Conn(); err != nil {
 		return
 	}
-	sqlStr := fmt.Sprintf("INSERT INTO %s (user_id, product_id, order_status) VALUES (?, ?, ?)", o.table)
+	sqlStr := fmt.Sprintf("INSERT INTO `%s` (user_id, product_id, order_status) VALUES (?, ?, ?)", o.table)
 	stmt, err := o.mysqlConn.Prepare(sqlStr)
 	if err != nil {
 		return
@@ -145,9 +145,10 @@ func (o *OrderManager) SelectAllWithInfo() (result map[int]map[string]string, er
 	if err = o.Conn(); err != nil {
 		return nil, err
 	}
-	sqlStr := fmt.Sprintf("SELECT * FROM %s as a LEFT JOIN %s as b ON a.product_id = b.id", o.table, "product")
+	sqlStr := fmt.Sprintf("SELECT a.id,a.order_status,b.product_name FROM `%s` as a LEFT JOIN `%s` as b ON a.product_id = b.id", o.table, "product")
+	fmt.Println(sqlStr)
 	rows, err := o.mysqlConn.Query(sqlStr)
-	defer rows.Close()
+	//defer rows.Close()
 	if err != nil {
 		return nil, err
 	}

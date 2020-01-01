@@ -663,7 +663,7 @@
         // TODO: Convert keymap into dictionary format for fast lookup.
       },
       // Testing hook, though it might be useful to expose the register
-      // controller anyways.
+      // controllers anyways.
       getRegisterController: function() {
         return vimGlobalState.registerController;
       },
