@@ -2,19 +2,18 @@ package controllers
 
 import (
 	"product-go/common"
+	"product-go/encrypt"
 	"product-go/models"
 	"product-go/services"
 	"strconv"
 
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
-	"github.com/kataras/iris/v12/sessions"
 )
 
 type UserController struct {
 	Ctx     iris.Context
 	Service services.IUserService
-	Sess    *sessions.Sessions
 }
 
 func (u *UserController) GetRegister() mvc.View {
@@ -68,9 +67,17 @@ func (u *UserController) PostLogin() mvc.Response {
 	}
 
 	//将用户id写入到cookie中
-	common.GlobalCookie(u.Ctx, "uid", strconv.FormatInt(user.ID, 10))
-	//写session
-	u.Sess.Start(u.Ctx).Set("userId", strconv.FormatInt(user.ID, 10))
+	uidStr := strconv.FormatInt(user.ID, 10)
+	common.GlobalCookie(u.Ctx, "uid", uidStr)
+
+	//将用户id加密，并将加密后的sign写入到Cookie中
+	sign, err := encrypt.EnPwdCode([]byte(uidStr))
+	if err != nil {
+		return mvc.Response{
+			Path: "/user/login",
+		}
+	}
+	common.GlobalCookie(u.Ctx, "sign", sign)
 
 	return mvc.Response{
 		Path: "/product/detail",

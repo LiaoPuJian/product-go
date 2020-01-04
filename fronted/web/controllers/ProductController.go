@@ -2,8 +2,6 @@ package controllers
 
 import (
 	"database/sql"
-	"errors"
-	"fmt"
 	"product-go/models"
 	"product-go/services"
 	"strconv"
@@ -71,10 +69,8 @@ func (p *ProductController) GetOrder() mvc.View {
 
 		var errOrderInsert error
 		orderId, errOrderInsert = p.OrderService.InsertOrder(order)
-		errOrderInsert = errors.New("插入报错了！")
 		if errUpdateProduct != nil || errOrderInsert != nil {
 			tx.Rollback()
-			fmt.Println("出现错误，事务回滚")
 			p.Ctx.Application().Logger().Debug(err)
 		} else {
 			tx.Commit()
